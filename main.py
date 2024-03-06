@@ -25,5 +25,4 @@ if __name__ == '__main__':
     for word, idx in word2idx.items():
         word_tensor = torch.tensor(idx)
         print(word, emb(word_tensor).detach().numpy())
-    # print(emb(word_tensor[0]))
-    # print(emb(word) for word in word_tensor)
+
