@@ -101,3 +101,4 @@ if __name__ == "__main__":
                                 SparseFeat("hist_movie_id", feature_max_index_dict["movie_id"], embedding_dim,
                                            embedding_name="movie_id"), SEQ_LEN, "mean", "hist_len")]
     item_feature_columns = [SparseFeat("movie_id", feature_max_index_dict["movie_id"], embedding_dim)]
+

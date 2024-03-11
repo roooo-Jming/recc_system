@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 DEFAULT_GROUP_NAME = "default_group"
 
@@ -58,3 +58,28 @@ class VarLenSparseFeat(namedtuple("VarLenSparseFeat", ["sparsefeat", "maxlen", "
 
     def __hash__(self):
         self.name.__hash__()
+
+
+class DenseFeat(namedtuple("DenseFeat", ["name", "dimension", "dtype"])):
+    __slots__ = ()
+
+    def __new__(cls, name, dimension=1, dtype="float32"):
+        return super(DenseFeat, cls).__new__(cls, name, dimension, dtype)
+
+    def __hash__(self):
+        return self.name.__hash__()
+
+
+def build_input_features(feature_columns):
+    features = OrderedDict()
+    start = 0
+
+    for feat in feature_columns:
+        if feat.name in features:
+            continue
+        if isinstance(feat, SparseFeat):
+            features[feat.name] = (start, start + 1)
+            start += 1
+        elif isinstance(feat, DenseFeat):
+            features[feat.name] = (start, start + feat.dimension)
+            start += feat.dimension
