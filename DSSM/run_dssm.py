@@ -4,6 +4,8 @@ import numpy as np
 import random
 import torch
 from keras.preprocessing.sequence import pad_sequences
+from tqdm import tqdm
+from inputs import SparseFeat, VarLenSparseFeat
 
 
 def process_data(data_path, neg_sample=0, max_len=50):
@@ -24,7 +26,7 @@ def process_data(data_path, neg_sample=0, max_len=50):
     train_list = []
     test_list = []
 
-    for user_id, hist_df in df.groupby("user_id"):
+    for user_id, hist_df in tqdm(df.groupby("user_id")):
         pos_list = hist_df["movie_id"].to_list()
         rating_list = hist_df["rating"].to_list()
         # train,test的数据格式：user_id, hist_movid_id, pos_movie_id, label, hist_len, pos_rating
@@ -42,7 +44,7 @@ def process_data(data_path, neg_sample=0, max_len=50):
                 train_list.append([user_id, hist[::-1], pos_list[i], 1, len(hist[::-1]), rating_list[i]])
                 for neg_idx in range(neg_sample):
                     train_list.append(
-                        [user_id, hist[::-1], neg_list[i * neg_idx + i], 0, len(hist[::-1]), rating_list[i]])
+                        [user_id, hist[::-1], neg_list[i * neg_sample + neg_idx], 0, len(hist[::-1])])
             else:
                 test_list.append([user_id, hist[::-1], pos_list[i], 1, len(hist[::-1]), rating_list[i]])
 
@@ -85,5 +87,17 @@ def process_data(data_path, neg_sample=0, max_len=50):
 
 if __name__ == "__main__":
     data_path = r"D:\desktop\project\job\algorithm\testHub\recc_system\data\movielens_sample.txt"
-    feature_max_index_dict, train_dict, test_dict=process_data(data_path)
+    feature_max_index_dict, train_dict, test_dict = process_data(data_path)
     train_dict.pop("label")
+    embedding_dim = 8
+    SEQ_LEN = 50
+    neg_sample = 3
+    user_feature_columns = [SparseFeat("user_id", feature_max_index_dict["user_id"], embedding_dim),
+                            SparseFeat("gender", feature_max_index_dict["gender"], embedding_dim),
+                            SparseFeat("age", feature_max_index_dict["age"], embedding_dim),
+                            SparseFeat("occupation", feature_max_index_dict["occupation"], embedding_dim),
+                            SparseFeat("zip", feature_max_index_dict["zip"], embedding_dim),
+                            VarLenSparseFeat(
+                                SparseFeat("hist_movie_id", feature_max_index_dict["movie_id"], embedding_dim,
+                                           embedding_name="movie_id"), SEQ_LEN, "mean", "hist_len")]
+    item_feature_columns = [SparseFeat("movie_id", feature_max_index_dict["movie_id"], embedding_dim)]
