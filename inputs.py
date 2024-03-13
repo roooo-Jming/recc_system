@@ -1,4 +1,5 @@
 from collections import namedtuple, OrderedDict
+import torch.nn as nn
 
 DEFAULT_GROUP_NAME = "default_group"
 
@@ -71,6 +72,7 @@ class DenseFeat(namedtuple("DenseFeat", ["name", "dimension", "dtype"])):
 
 
 def build_input_features(feature_columns):
+    # Return OrderedDict: {feature_name:(start, start+dimension)}
     features = OrderedDict()
     start = 0
 
@@ -83,3 +85,26 @@ def build_input_features(feature_columns):
         elif isinstance(feat, DenseFeat):
             features[feat.name] = (start, start + feat.dimension)
             start += feat.dimension
+        elif isinstance(feat, VarLenSparseFeat):
+            features[feat.name] = (start, start + feat.maxlen)
+            start += feat.maxlen
+            if feat.length_name is not None and feat.length_name not in features:
+                features[feat.length_name] = (start, start + 1)
+        else:
+            raise TypeError("Invalid feature column type, got", type(feat))
+
+    return features
+
+
+def create_embedding_matrix(feature_columns, init_std=0.001, linear=False, sparse=False):
+    sparse_feature_columns = list(filter(lambda x: isinstance(x, SparseFeat), feature_columns)) if len(
+        feature_columns) else []
+    varlen_sparse_feature_columns = list(filter(lambda x: isinstance(x, VarLenSparseFeat), feature_columns)) if len(
+        feature_columns) else []
+
+    embedding_dict = nn.ModuleDict(
+        {feat.embedding_name: nn.Embedding(feat.vocabulary_size, feat.embedding_dim if not linear else 1, sparse=sparse)
+         for feat in sparse_feature_columns + varlen_sparse_feature_columns})
+
+    for tensor in embedding_dict.values():
+        nn.init.normal_(tensor.weight, mean=0, std=init_std)

@@ -86,19 +86,25 @@ def process_data(data_path, neg_sample=0, max_len=50):
 
 
 if __name__ == "__main__":
-    data_path = r"D:\desktop\project\job\algorithm\testHub\recc_system\data\movielens_sample.txt"
-    feature_max_index_dict, train_dict, test_dict = process_data(data_path)
-    train_dict.pop("label")
-    embedding_dim = 8
-    SEQ_LEN = 50
-    neg_sample = 3
-    user_feature_columns = [SparseFeat("user_id", feature_max_index_dict["user_id"], embedding_dim),
-                            SparseFeat("gender", feature_max_index_dict["gender"], embedding_dim),
-                            SparseFeat("age", feature_max_index_dict["age"], embedding_dim),
-                            SparseFeat("occupation", feature_max_index_dict["occupation"], embedding_dim),
-                            SparseFeat("zip", feature_max_index_dict["zip"], embedding_dim),
-                            VarLenSparseFeat(
-                                SparseFeat("hist_movie_id", feature_max_index_dict["movie_id"], embedding_dim,
-                                           embedding_name="movie_id"), SEQ_LEN, "mean", "hist_len")]
-    item_feature_columns = [SparseFeat("movie_id", feature_max_index_dict["movie_id"], embedding_dim)]
+    # data_path = r"D:\desktop\project\job\algorithm\testHub\recc_system\data\movielens_sample.txt"
+    # feature_max_index_dict, train_dict, test_dict = process_data(data_path)
+    # train_dict.pop("label")
+    # embedding_dim = 8
+    # SEQ_LEN = 50
+    # neg_sample = 3
+    # user_feature_columns = [SparseFeat("user_id", feature_max_index_dict["user_id"], embedding_dim),
+    #                         SparseFeat("gender", feature_max_index_dict["gender"], embedding_dim),
+    #                         SparseFeat("age", feature_max_index_dict["age"], embedding_dim),
+    #                         SparseFeat("occupation", feature_max_index_dict["occupation"], embedding_dim),
+    #                         SparseFeat("zip", feature_max_index_dict["zip"], embedding_dim),
+    #                         VarLenSparseFeat(
+    #                             SparseFeat("hist_movie_id", feature_max_index_dict["movie_id"], embedding_dim,
+    #                                        embedding_name="movie_id"), SEQ_LEN, "mean", "hist_len")]
+    # item_feature_columns = [SparseFeat("movie_id", feature_max_index_dict["movie_id"], embedding_dim)]
 
+    test = list(range(10))
+    feature_index = {
+        "movie_id": (2, 5)
+    }
+    print(feature_index["movie_id"][0])
+    # print(test[:, feature_index["movie_id"][0]:feature_index["movie_id"][1]])
