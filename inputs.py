@@ -108,3 +108,14 @@ def create_embedding_matrix(feature_columns, init_std=0.001, linear=False, spars
 
     for tensor in embedding_dict.values():
         nn.init.normal_(tensor.weight, mean=0, std=init_std)
+
+    return embedding_dict
+
+
+def varlen_embedding_lookup(X, varlen_feature_columns, embedding_dict, feature_index):
+    # feature_name:lookup_idx
+    varlen_embedding_dict = {}
+    for feat in varlen_feature_columns:
+        lookup_idx = feature_index[feat.name]
+        varlen_embedding_dict[feat.name] = embedding_dict[feat.embedding_name](X[:, lookup_idx[0]:lookup_idx[1]].long())
+    return varlen_embedding_dict
