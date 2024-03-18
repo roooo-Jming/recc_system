@@ -1,5 +1,6 @@
 from collections import namedtuple, OrderedDict
 import torch.nn as nn
+from layers.sequence import SequencePoolingLayer
 
 DEFAULT_GROUP_NAME = "default_group"
 
@@ -119,3 +120,17 @@ def varlen_embedding_lookup(X, varlen_feature_columns, embedding_dict, feature_i
         lookup_idx = feature_index[feat.name]
         varlen_embedding_dict[feat.name] = embedding_dict[feat.embedding_name](X[:, lookup_idx[0]:lookup_idx[1]].long())
     return varlen_embedding_dict
+
+
+def get_varlen_pooling_list(embedding_dict, feature, feature_index, varlen_sparse_feature_columns, device):
+    varlen_sparse_embedding_list = []
+    for feat in varlen_sparse_feature_columns:
+        seq_emb = embedding_dict[feat.name]
+        if feat.length_name is None:
+            seq_mask = feature[:, feature_index[feat.name][0]:feature_index[feat.name][1]].long() != 0
+            emb = SequencePoolingLayer(mode=feat.combiner, support_mask=True, device=device)([seq_emb, seq_mask])
+        else:
+            seq_length = feature[:, feature_index[feat.name][0]:feature_index[feat.name][1]].long()
+            emb = SequencePoolingLayer(mode=feat.combiner, support_mask=False, device=device)([seq_emb, seq_length])
+        varlen_sparse_embedding_list.append(emb)
+    return varlen_sparse_embedding_list
